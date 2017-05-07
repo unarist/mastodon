@@ -1,0 +1,50 @@
+version: '2'
+volumes:
+  node_modules:
+  gems:
+  public_assets:
+  public_packs:
+  public_system:
+services:
+
+  web:
+    # masterではappに書いた方がいいかも
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./app:/mastodon/app
+#     - ./bin:/mastodon/bin
+      - ./config:/mastodon/config
+      - ./db:/mastodon/db
+      - ./lib:/mastodon/lib
+#     - ./public:/mastodon/public
+#     - ./babelrc:/mastodon/.babelrc
+#     - ./config.ru:/mastodon/config.ru
+      # install -> rebuild, update -> run
+      - ./Gemfile:/mastodon/Gemfile
+      - ./Gemfile.lock:/mastodon/Gemfile.lock
+      - ./package.json:/mastodon/package.json
+      - ./yarn.lock:/mastodon/yarn.lock
+      - gems:/usr/local/bundle
+      - node_modules:/mastodon/node_modules
+      - public_packs:/mastodon/public/packs
+      - public_assets:/mastodon/public/assets
+      - public_system:/mastodon/public/system
+    tmpfs:
+      - /mastodon/tmp
+
+  streaming:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - node_modules:/mastodon/node_modules
+      - ./streaming:/mastodon/streaming
+
+  sidekiq:
+    build:
+      context: .
+      dockerfile: Dockerfile.dummy
+    image: tianon/sleeping-beauty
+    command: /sleeping-beauty

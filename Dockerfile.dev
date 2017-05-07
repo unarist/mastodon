@@ -1,0 +1,41 @@
+FROM ruby:2.4.1-alpine
+
+LABEL maintainer="https://github.com/tootsuite/mastodon" \
+      description="A GNU Social-compatible microblogging server"
+
+ENV RAILS_ENV=development \
+    NODE_ENV=development
+
+EXPOSE 3000 4000
+
+WORKDIR /mastodon
+
+RUN echo "@edge https://nl.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories \
+ && apk -U upgrade && apk add \
+    postgresql-dev \
+    libxml2-dev \
+    libxslt-dev \
+    python \
+    build-base \
+    nodejs@edge \
+    nodejs-npm@edge \
+    libpq \
+    libxml2 \
+    libxslt \
+    ffmpeg \
+    file \
+    imagemagick@edge \
+    ca-certificates \
+ && npm install -g npm@3 && npm install -g yarn \
+ && update-ca-certificates \
+ && rm -rf /tmp/* /var/cache/apk/*
+
+RUN yarn config set ignore-optional true \
+ && bundle config without production
+ 
+#COPY Gemfile Gemfile.lock package.json yarn.lock /mastodon/
+
+#RUN bundle install --without production \
+# && yarn --ignore-optional --pure-lockfile
+
+COPY . /mastodon
