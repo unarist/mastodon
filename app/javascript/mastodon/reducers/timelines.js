@@ -165,7 +165,7 @@ const normalizeAccountMediaTimeline = (state, accountId, statuses, next) => {
   return state.updateIn(['account_media_timelines', accountId], Immutable.Map(), map => map
     .set('isLoading', false)
     .set('next', next)
-    .update('items', Immutable.List(), list => list.unshift(...ids)));
+    .update('items', Immutable.List(), list => list.concat(ids)));
 };
 
 const appendNormalizedAccountTimeline = (state, accountId, statuses, next) => {
@@ -193,7 +193,7 @@ const appendNormalizedAccountMediaTimeline = (state, accountId, statuses, next) 
   return state.updateIn(['account_media_timelines', accountId], Immutable.Map(), map => map
     .set('isLoading', false)
     .set('next', next)
-    .update('items', list => list.push(...moreIds)));
+    .update('items', list => list.concat(moreIds)));
 };
 
 const updateTimeline = (state, timeline, status, references) => {
