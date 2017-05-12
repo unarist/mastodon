@@ -7,7 +7,10 @@
     "storybook": "start-storybook -p 9001 -c storybook",
     "test": "npm run test:lint && npm run test:mocha",
     "test:lint": "eslint -c .eslintrc.json --ext=js --ext=jsx app/assets/javascripts/",
-    "test:mocha": "mocha --require ./spec/javascript/setup.js --compilers js:babel-register ./spec/javascript/components/*.test.jsx"
+    "test:mocha": "mocha --require ./spec/javascript/setup.js --compilers js:babel-register ./spec/javascript/components/*.test.jsx",
+    "dev:cc": "rm -rf public/assets/* public/packs/*",
+    "dev:reset": "rm -rf public/system/* && rails db:reset",
+    "dev:install": "yarn --pure-lockfile && bundle"
   },
   "repository": {
     "type": "git",
