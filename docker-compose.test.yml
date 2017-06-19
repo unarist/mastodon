@@ -1,0 +1,49 @@
+version: '3'
+volumes:
+  node_modules:
+  gems:
+  yarn:
+services:
+
+  db:
+    image: postgres:alpine
+    #ports:
+    #  - "5432:5432"
+
+  redis-test:
+    image: redis:alpine
+
+  web-test:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: "npm run dev:testenv"
+    env_file: .env.test
+    environment:
+      RAILS_ENV: test
+      DB_HOST: db
+      DB_USER: postgres
+      REDIS_HOST: redis-test
+    depends_on:
+      - db
+      - redis-test
+    volumes:
+      - ./app:/mastodon/app
+#     - ./bin:/mastodon/bin
+      - ./config:/mastodon/config
+      - ./db:/mastodon/db
+      - ./lib:/mastodon/lib
+      - ./spec:/mastodon/spec
+      - ./coverage:/mastodon/coverage
+#     - ./public:/mastodon/publi
+#     - ./babelrc:/mastodon/.babelrc
+#     - ./config.ru:/mastodon/config.ru
+      - ./streaming:/mastodon/streaming
+      # install -> rebuild, update -> run
+      - ./Gemfile:/mastodon/Gemfile
+      - ./Gemfile.lock:/mastodon/Gemfile.lock
+      - ./package.json:/mastodon/package.json
+      - ./yarn.lock:/mastodon/yarn.lock
+      - gems:/usr/local/bundle
+      - yarn:/usr/local/yarn # customized in Dockerfile
+      - node_modules:/mastodon/node_modules

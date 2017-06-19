@@ -11,7 +11,14 @@
     "test": "npm run test:lint && npm run test:mocha",
     "test:lint": "eslint -c .eslintrc.yml --ext=js app/javascript/ config/webpack/ spec/javascript/ storybook/ streaming/",
     "test:mocha": "cross-env NODE_ENV=test mocha --require ./spec/javascript/setup.js --compilers js:babel-register ./spec/javascript/components/*.test.js",
-    "postinstall": "npm rebuild node-sass"
+    "postinstall": "npm rebuild node-sass",
+    "dev:cc": "rimraf public/assets/* public/packs/*",
+    "dev:reset": "rimraf public/system/* && rails db:reset",
+    "dev:install": "yarn --pure-lockfile && bundle",
+    "dev:testenv": "(rails db:migrate || RAILS_ENV=test rails db:reset) && rails assets:precompile",
+    "webpack:makecert": "openssl req -new -x509 -sha256 -extensions v3_req -config makecert.cnf -nodes -out webpack.crt -keyout webpack.key",
+    "webpack:serve": "cross-env NODE_ENV=development ASSET_HOST=http://192.168.0.8:8080 webpack-dev-server --progress --color --config=config/webpack/development.server.js",
+    "webpack:serve-https": "cross-env NODE_ENV=development ASSET_HOST=https://192.168.0.8:8080 webpack-dev-server --https --cert=./webpack.crt --key=./webpack.key --progress --color --config=config/webpack/development.server.js"
   },
   "repository": {
     "type": "git",

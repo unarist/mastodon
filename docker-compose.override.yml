@@ -1,0 +1,90 @@
+version: '3'
+volumes:
+  node_modules:
+  gems:
+  public_assets:
+  public_system:
+  yarn:
+services:
+
+  db:
+    restart: on-failure:1
+    ports:
+      - "5432:5432"
+
+  redis:
+    restart: on-failure:1
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: on-failure:1
+    volumes:
+      - ./app:/mastodon/app
+#     - ./bin:/mastodon/bin
+      - ./config:/mastodon/config
+      - ./db:/mastodon/db
+      - ./lib:/mastodon/lib
+      - ./spec:/mastodon/spec
+      - ./coverage:/mastodon/coverage
+#     - ./public:/mastodon/publi
+#     - ./babelrc:/mastodon/.babelrc
+#     - ./config.ru:/mastodon/config.ru
+      # install -> rebuild, update -> run
+      - ./Gemfile:/mastodon/Gemfile
+      - ./Gemfile.lock:/mastodon/Gemfile.lock
+      - ./package.json:/mastodon/package.json
+      - ./yarn.lock:/mastodon/yarn.lock
+      - ./public/packs:/mastodon/public/packs
+      - gems:/usr/local/bundle
+      - yarn:/usr/local/yarn # customized in Dockerfile
+      - node_modules:/mastodon/node_modules
+      - public_assets:/mastodon/public/assets
+      - public_system:/mastodon/public/system
+    tmpfs:
+      - /mastodon/tmp
+
+  streaming:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: on-failure:1
+    volumes:
+      - node_modules:/mastodon/node_modules
+      - ./streaming:/mastodon/streaming
+
+  sidekiq:
+    build:
+      context: .
+      #dockerfile: Dockerfile.dummy
+      dockerfile: Dockerfile.dev
+    #image: tianon/true
+    restart: "no"
+    #command: /true
+    volumes:
+      - ./app:/mastodon/app
+      - ./config:/mastodon/config
+      - ./lib:/mastodon/lib
+      - ./Gemfile:/mastodon/Gemfile
+      - ./Gemfile.lock:/mastodon/Gemfile.lock
+      - gems:/usr/local/bundle
+      - public_assets:/mastodon/public/assets
+      - public_system:/mastodon/public/system
+    tmpfs:
+      - /mastodon/tmp
+
+#  webpack-dev-server:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile.dev
+#    env_file: .env.production
+#    command: bin/webpack-dev-server --host 0.0.0.0 --lazy
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - ./config:/mastodon/config
+#      - ./app:/mastodon/app
+#      - public_packs:/mastodon/public/packs
+#      - public_assets:/mastodon/public/assets
+#      - node_modules:/mastodon/node_modules

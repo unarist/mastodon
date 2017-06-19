@@ -78,7 +78,11 @@ const startWorker = (workerId) => {
 
   const pgConfigs = {
     development: {
+      user:     process.env.DB_USER || null,
+      password: process.env.DB_PASS || null,
       database: 'mastodon_development',
+      host:     process.env.DB_HOST || null,
+      port:     process.env.DB_PORT || null,
       max:      10,
     },
 
