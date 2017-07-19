@@ -1,4 +1,5 @@
 import api from '../api';
+import { debounce } from 'lodash';
 
 export const REBLOG_REQUEST = 'REBLOG_REQUEST';
 export const REBLOG_SUCCESS = 'REBLOG_SUCCESS';
@@ -96,19 +97,56 @@ export function unreblogFail(status, error) {
   };
 };
 
+const bufferedDomains = new Set([
+  'mstdn.maud.io',
+  'gnusocial.cardina1.red',
+  'toot.yukimochi.jp',
+  'mstdn.nere9.help',
+  '192.168.0.8:3000',
+]);
+let buffer = [];
+
+const processLater = debounce((...args) => {
+  const currentBuffer = buffer;
+  buffer = [];
+
+  currentBuffer.sort((a,b) => a[0].localeCompare(b[0])).forEach(x => x[2](...args));
+}, 30000);
+
 export function favourite(status) {
   return function (dispatch, getState) {
     dispatch(favouriteRequest(status));
 
-    api(getState).post(`/api/v1/statuses/${status.get('id')}/favourite`).then(function (response) {
-      dispatch(favouriteSuccess(status, response.data));
-    }).catch(function (error) {
-      dispatch(favouriteFail(status, error));
-    });
+    const domain = status.get('uri').match(/tag:([^,]+)/)[1];
+    if (!bufferedDomains.has(domain)) {
+      api(getState).post(`/api/v1/statuses/${status.get('id')}/favourite`).then(function (response) {
+        dispatch(favouriteSuccess(status, response.data));
+      }).catch(function (error) {
+        dispatch(favouriteFail(status, error));
+      });
+    } else {
+      buffer.push([domain, status.get('id'), () => {
+        api(getState).post(`/api/v1/statuses/${status.get('id')}/favourite`).then(function (response) {
+          dispatch(favouriteSuccess(status, response.data));
+        }).catch(function (error) {
+          dispatch(favouriteFail(status, error));
+        });
+      }]);
+      processLater();
+    }
   };
 };
 
 export function unfavourite(status) {
+  const idx = buffer.findIndex(x => x[1] === status.get('id'));
+  if (idx >= 0) {
+    buffer.splice(idx, 1);
+    return (dispatch) => {
+      dispatch(unfavouriteRequest(status));
+      dispatch({ type: 'DUMMY_UNFAVOURITE_SUCCESS' });
+      dispatch({ type: 'DUMMY_FAVOURITE_SUCCESS' });
+    };
+  }
   return (dispatch, getState) => {
     dispatch(unfavouriteRequest(status));
 

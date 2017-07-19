@@ -99,6 +99,8 @@ export default function statuses(state = initialState, action) {
     return state.setIn([action.status.get('id'), 'favourited'], true);
   case FAVOURITE_FAIL:
     return state.setIn([action.status.get('id'), 'favourited'], false);
+  case 'UNFAVOURITE_REQUEST':
+    return state.setIn([action.status.get('id'), 'favourited'], false);
   case REBLOG_REQUEST:
     return state.setIn([action.status.get('id'), 'reblogged'], true);
   case REBLOG_FAIL:
